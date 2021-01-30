@@ -126,7 +126,7 @@ detach_package("rJava")
 options(java.parameters = "-Xmx32g" )  # originally set to "-Xmx8g" 
 
 # Install of required packages, including re-install of those detached after greater allocation of memory for Java 
-install.packages(c("XLConnect", "rJava"))
+install.packages(c("ggplot2", "grid", "RColorBrewer", "reshape2", "XLConnect", "rJava"))
 
 # Load all the required packages
 libs <- c( "XLConnect", "ggplot2", "grid", "RColorBrewer", "reshape2")
