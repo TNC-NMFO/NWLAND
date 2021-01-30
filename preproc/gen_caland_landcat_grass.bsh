@@ -1,0 +1,190 @@
+# gen_caland_landcat_grass.bsh
+#
+# GRASS GIS script
+#
+# script to process CA data to generate a raster of the CALAND land categories and their land area and biomass/carbon density stats
+# land area for 2001 and 2010 per category are needed to estimate the annual change in land cover
+#
+# most of these input data have been cleaned (in GRASS, usually on read in, but sometimes by additional processing) and prepared prior to this, and reprojected if necessary
+#	for example, wilderness has been reprojected and clipped to CA (GRASS); CCED has been dissolved to a single category (QGIS); the spatial region file has been created (QGIS); the land type rasters have been created (R)
+#	one concern has been that the data are not topologically correct, but GRASS is a topological system
+#	topological means that the areas/boundaries are shared between polygons, meaning that that polygons do not have erroneous overlaps and each physical area is counted only once
+#	ARC is not topological, unless the user sets topological rules and forces it to treat areas as a contiguous coverage
+#
+# use several data sets already in the database (they are all in CA Teale Albers NAD83):
+#	state15_1 (from calfire)
+#	state_wilderness_only (from usfs)
+#	CCED_2015a_dissolve (from CCED)
+#	ownership13_2 (from CALFIRE)
+#	ca_eco8_delta (bailey’s calfire aggregation plus the delta/suisun)
+#	LFc_evt2010_aggregate (30m raster, from landfire)
+#	LFc_evt2001_aggregate (30m raster, from landfire)
+#	the six biomass data rasters from ARB (these are biomass and not carbon, tbiopha)
+#		above ground main, below ground main, understory, standing dead, downed dead, litter
+#	soc_tot_tpha (from gSSURGO; soil carbon converted to 30m raster)
+
+
+# this can be modified, but for now:
+# the goal is the intersection of:
+#	land type (currently 15; the two developed types will be merged)
+#	ownership class (9: private, private easement/trust/conservancy, usfs non-wilderness, state gov, local gov, NPS, BLM, DoD, other federal)
+#		state includes: parks and rec, fish and wildlife, calfire, other state lands
+#		other federal includes: usfs wilderness, bia, reclamation, us fish and wildlife, other federal
+#	spatial delineation (9: calfire aggregation of bailey’s ecoregions to 8, plus the delta/suisun marsh split from the central valley)
+#		the boundary of the central coast region bordering the delta region has been adjusted up to 2km in some places to accommodate
+#			1) the legal delta that juts into the central coast region and
+#			2) some high soil carbon areas in the central coast region contiguous with the suisun marsh
+#		otherwise the delta/suisun region was taken from the central valley region based on these data: Legal Delta Boundary, 2001, DWR [ds586]
+#			small areas (< 2km) between the legal delta and the central coast region are assimilated into the delta/suisun region
+#			the suisun marsh area is taken out of the central valley region based on gSSURGO soil carbon data (contiguous values > 250 MgC per ha)
+#				with some slight adjustments of the central coast region as described above
+
+
+echo "start at:"
+date
+
+# start in the appropriate mapset
+g.mapset mapset=ca_carbon location=ca_aea_nad83
+
+# check the region and projection
+g.proj -p
+g.region -p
+
+echo "start ownership preprocessing at:"
+date
+
+# dissolve the ownership to the group level
+v.dissolve input=ownership13_2 column=Own_Group output=own13_2_group --overwrite
+
+# add a column “own_class” to the ownership layer for merging to desired ownerships
+# assign the own classes (give “Non-Profit Conservancies and Trusts” an easement label) appropriately
+# then dissolve to “own_class”
+v.db.addcolumn map=own13_2_group columns="own_class varchar(250)"
+v.db.update map=own13_2_group column=own_class value=Easement where="own_group IS 'Non-Profit Conservancies and Trusts'"
+v.db.update map=own13_2_group column=own_class value=USFS_nonwild where="own_group IS 'USDA Forest Service'"
+v.db.update map=own13_2_group column=own_class value=Local_gov where="own_group IS 'Local Government'"
+v.db.update map=own13_2_group column=own_class value=State_gov where="own_group IS 'CA Dept. of Fish and Wildlife'"
+v.db.update map=own13_2_group column=own_class value=State_gov where="own_group IS 'CA Dept. of Forestry and Fire Protection'"
+v.db.update map=own13_2_group column=own_class value=State_gov where="own_group IS 'CA Dept. of Parks and Recreation'"
+v.db.update map=own13_2_group column=own_class value=State_gov where="own_group IS 'Other State Lands'"
+v.db.update map=own13_2_group column=own_class value=NPS where="own_group IS 'National Park Service'"
+v.db.update map=own13_2_group column=own_class value=BLM where="own_group IS 'Bureau of Land Management'"
+v.db.update map=own13_2_group column=own_class value=DoD where="own_group IS 'Department of Defense'"
+v.db.update map=own13_2_group column=own_class value=Other_fed where="own_group IS 'Bureau of Indian Affairs'"
+v.db.update map=own13_2_group column=own_class value=Other_fed where="own_group IS 'Bureau of Reclamation'"
+v.db.update map=own13_2_group column=own_class value=Other_fed where="own_group IS 'US Fish and Wildlife Service'"
+v.db.update map=own13_2_group column=own_class value=Other_fed where="own_group IS 'Other Federal Lands'"
+v.dissolve input=own13_2_group column=own_class output=own13_2_class --overwrite
+# cleaning was unnecessary here; ran the following and nothing changed
+# v.clean -c input=own13_2_class output=own13_2_class_clean tool=rmdangle,rmbridge,rmdupl,rmdac,bpol,rmline threshold=-1
+
+# merge the state boundary (state15_1) with ownership to establish the “Private” class; v.overlay cleans and builds
+v.overlay --overwrite ainput=own13_2_class binput=state15_1 operator=or output=state_own13_2_class
+v.db.renamecolumn map=state_own13_2_class column=a_own_class,own_class
+v.db.update map=state_own13_2_class column=own_class value=Private where="own_class IS NULL"
+
+# dissolve to all the ownership classes
+v.dissolve input=state_own13_2_class column=own_class output=state_own13_2_class_dissolve --overwrite
+
+# merge the wilderness and easements data; this overlay didn't clean properly
+v.overlay --overwrite ainput=state_wilderness_only binput=CCED_2015a_dissolve operator=or output=state_wild_cced
+v.clean -c --overwrite input=state_wild_cced output=state_wild_cced_clean tool=break,rmdangle,rmbridge,rmdupl,rmdac,bpol,rmline threshold=-1
+
+# merge the wilderness and CCED with the ownership; v.overlay did not adequately clean
+# and assign the appropriate class labels
+v.overlay --overwrite ainput=state_own13_2_class_dissolve binput=state_wild_cced_clean operator=or output=state_own13_2_class_wild_cced
+v.clean -c --overwrite input=state_own13_2_class_wild_cced output=state_own13_2_class_wild_cced_clean tool=break,rmdangle,rmbridge,rmdupl,rmdac,bpol,rmline threshold=-1
+
+v.db.renamecolumn map=state_own13_2_class_wild_cced_clean column=a_own_class,own_class
+v.db.update map=state_own13_2_class_wild_cced_clean column=own_class value=Other_fed where="b_a_b_wild_label IS 'Protected'"
+v.db.update map=state_own13_2_class_wild_cced_clean column=own_class value=Easement where="b_b_ease_label IS 'Conservation Easement'"
+
+# dissolve and clean the total ownership and add a column with the area for each ownership
+# this appears to be clean
+v.dissolve --overwrite input=state_own13_2_class_wild_cced_clean column=own_class output=state_own9
+v.db.addcolumn map=state_own9 columns="own_area double precision"
+v.to.db map=state_own9 option=area units=meters columns=own_area
+
+# convert the final ownership to raster, using the category numbers as the values
+# the cat values are already in alphabetical order
+v.to.rast --overwrite input=state_own9 output=state_own9_rast use=cat label_column=own_class memory=8000
+
+# convert the spatial layer to raster
+# first make a value column so that the regions are enumerated in alphabetical order
+v.db.addcolumn map=ca_eco8_delta columns="rast_val int"
+v.db.update map=ca_eco8_delta column=rast_val value=1 where="region IS 'Central_Coast'"
+v.db.update map=ca_eco8_delta column=rast_val value=2 where="region IS 'Central_Valley'"
+v.db.update map=ca_eco8_delta column=rast_val value=3 where="region IS 'Delta'"
+v.db.update map=ca_eco8_delta column=rast_val value=4 where="region IS 'Deserts'"
+v.db.update map=ca_eco8_delta column=rast_val value=5 where="region IS 'Eastside'"
+v.db.update map=ca_eco8_delta column=rast_val value=6 where="region IS 'Klamath'"
+v.db.update map=ca_eco8_delta column=rast_val value=7 where="region IS 'North_Coast'"
+v.db.update map=ca_eco8_delta column=rast_val value=8 where="region IS 'Sierra_Cascades'"
+v.db.update map=ca_eco8_delta column=rast_val value=9 where="region IS 'South_Coast'"
+v.to.rast --overwrite input=ca_eco8_delta output=sp9_rast use=attr attribute_column=rast_val label_column=region memory=8000
+
+# make the final 2010 raster as (SSLLLOO):
+#	spatial*100000 + evt*100 + ownership
+#	make sure to first reclass the two developed classes (140 and 150) into 160 (Developed_all)
+#	spatial and ownership can range from 0-99 classes (but zero is not used here)
+#	land type (evt) can range from 0 to 999
+#		aggregate land type (evt) is currently enumerated as multiples of 10, with water==0
+#		see the lfc_aggregate_labels.txt and lfc_aggregate15_labels.txt files and reclass_dev.txt
+
+# 2010
+r.reclass --overwrite input=LFc_evt2010_aggregate output=evt2010_lt15_rast rules=/Users/adivi/projects/grass/ca_aea_nad83/ca_carbon/reclass_dev.txt
+r.category map=evt2010_lt15_rast separator=comma rules=/Users/adivi/projects/grass/ca_aea_nad83/ca_carbon/lfc_aggregate15_labels.txt
+r.mapcalc --overwrite "sp9_evt2010_lt15_own9 = sp9_rast * 100000 + evt2010_lt15_rast * 100 + state_own9_rast"
+# 2001
+r.reclass --overwrite input=LFc_evt2001_aggregate output=evt2001_lt15_rast rules=/Users/adivi/projects/grass/ca_aea_nad83/ca_carbon/reclass_dev.txt
+r.category map=evt2001_lt15_rast separator=comma rules=/Users/adivi/projects/grass/ca_aea_nad83/ca_carbon/lfc_aggregate15_labels.txt
+r.mapcalc --overwrite "sp9_evt2001_lt15_own9 = sp9_rast * 100000 + evt2001_lt15_rast * 100 + state_own9_rast"
+
+echo "start univar stats at:"
+date
+
+# output zonal stats tables
+
+# area using the combined raster
+r.stats -a --overwrite input=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/area_code_sp9_own9_2010lt15_sqm_stats.csv separator=comma
+r.stats -a --overwrite input=sp9_evt2001_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/area_code_sp9_own9_2001lt15_sqm_stats.csv separator=comma
+
+# area using the separate rasters
+r.stats -al --overwrite input=sp9_rast,evt2010_lt15_rast,state_own9_rast output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/area_lab_sp9_own9_2010lt15_sqm_stats.csv separator=comma
+r.stats -al --overwrite input=sp9_rast,evt2001_lt15_rast,state_own9_rast output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/area_lab_sp9_own9_2001lt15_sqm_stats.csv separator=comma
+
+
+# create vegetation carbon rasters once
+# use carbon = 0.47 * biomass, which is the assumption of the biomass input data from CARB
+#r.mapcalc --overwrite "lfc_agc2010_carbon = 0.47 * LFc_agc2010"
+#r.mapcalc --overwrite "lfc_bgc2010_carbon = 0.47 * LFc_bgc2010"
+#r.mapcalc --overwrite "lfc_ddc2010_carbon = 0.47 * LFc_ddc2010"
+#r.mapcalc --overwrite "lfc_dsc2010_carbon = 0.47 * LFc_dsc2010"
+#r.mapcalc --overwrite "lfc_ltc2010_carbon = 0.47 * LFc_ltc2010"
+#r.mapcalc --overwrite "lfc_usc2010_carbon = 0.47 * LFc_usc2010"
+#r.mapcalc --overwrite "lfc_agc_se2010_carbon = 0.47 * LFc_agc_se2010"
+#r.mapcalc --overwrite "lfc_bgc_se2010_carbon = 0.47 * LFc_bgc_se2010"
+#r.mapcalc --overwrite "lfc_ddc_se2010_carbon = 0.47 * LFc_ddc_se2010"
+#r.mapcalc --overwrite "lfc_dsc_se2010_carbon = 0.47 * LFc_dsc_se2010"
+#r.mapcalc --overwrite "lfc_ltc_se2010_carbon = 0.47 * LFc_ltc_se2010"
+#r.mapcalc --overwrite "lfc_usc_se2010_carbon = 0.47 * LFc_usc_se2010"
+
+# carbon
+# use the soil c data with null values so zeros do not get averaged into the output values
+r.univar -t --overwrite map=lfc_agc2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_agc_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_bgc2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_ddc2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_ddc_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_dsc2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_dsc_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_ltc2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_ltc_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_usc2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_usc_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=soc_tot_tpha_wnull zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/gss_soc_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_agc_se2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_bgc_se2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_ddc_se2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_dsc_se2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_dsc_se_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_ltc_se2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_ltc_se_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+r.univar -t --overwrite map=lfc_usc_se2010_carbon zones=sp9_evt2010_lt15_own9 output=/Users/adivi/projects/cnra_carbon/gis_data/gis_stats/lfc_usc_se_tpha_sp9_own9_2010lt15_stats.csv separator=comma
+
+
+echo "finish at:"
+date
