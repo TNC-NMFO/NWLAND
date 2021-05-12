@@ -5,16 +5,16 @@ source("~/GitHub/NWLAND/write_caland_inputs.r")
 # I don't think inline comments work in R, but we'll see..
 #commented lines below do not have inputs for CO/NM yet
 write_caland_inputs(
-    c_file = "2021_05_11_carbon_input_nwland_test.xls", # output file name
-    inputs_dir = "2021_05_11_carbon_input_nwland_test", # output file directory
-    parameter_file = "proto_lc_params.xls",
-#    scenarios_file = "nwl_scenarios_v6_ac.xls",
+    c_file = "~/GitHub/NWLAND/raw_data/2021_05_11_carbon_input_nwland_test.xls", # output file name
+    inputs_dir = "~/GitHub/NWLAND/raw_data/2021_05_11_carbon_input_nwland_test", # output file directory
+    parameter_file = "~/GitHub/NWLAND/raw_data/proto_lc_params.xls",
+    scenarios_file = "~/GitHub/NWLAND/raw_data/proto_nwl_scenarios_v01_ha.xls",
     units_scenario = "ha", # can be "ac" or "ha", we use hectares for NWLAND
-    climate_c_file = "climate_c_scalars_nmco_null_2010_2100.csv", 
-    fire_area_file = "fire_area_RDS-2020-0016 _averageannual_2001-2100.csv",
+    climate_c_file = "~/GitHub/NWLAND/raw_data/climate_c_scalars_nmco_null_2010_2100.csv", 
+    fire_area_file = "~/GitHub/NWLAND/raw_data/fire_area_RDS-2020-0016 _averageannual_2001-2100.csv",
     mortality_file = "mortality_annual_testing.csv",
-    area_gis_files_new = "NWLAND_Area_Changes_2015_to_2050.csv",
-    land_change_method = "Landuse_Avg_Annual",
+    area_gis_files_new = "~/GitHub/NWLAND/raw_data/NWLAND_Area_Changes_2015_to_2050.csv",
+    land_change_method = "~/GitHub/NWLAND/raw_data/Landuse_Avg_Annual",
     carbon_gis_files = c("~/GitHub/NWLAND/raw_data/soc_tpha_2017_stats.csv",
         "~/GitHub/NWLAND/raw_data/inventory_proto_agc_tpha.csv", 
         "~/GitHub/NWLAND/raw_data/inventory_proto_bgc_tpha.csv", 
@@ -29,6 +29,6 @@ write_caland_inputs(
 #    forest_mort_fact = 2, #what does this do?
 #    forest_mort_adj_first = 2015,
 #    forest_mort_adj_last = 2024,
-    control_wildfire_lulcc_file = "individual_proposed_sims_control_lulcc_wildfire_aug2018.csv", #not used becuse following line is false
+    control_wildfire_lulcc_file = "~/GitHub/NWLAND/raw_data/individual_proposed_sims_control_lulcc_wildfire_aug2018.csv", #not used becuse following line is false
     control_wildfire_lulcc = FALSE
 )
