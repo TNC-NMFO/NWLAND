@@ -1,9 +1,9 @@
+#load XLconnect
+library(XLConnect)
+
 #load the write_caland_inputs function to memory
 source("~/GitHub/NWLAND/write_caland_inputs.r")
 
-
-# I don't think inline comments work in R, but we'll see..
-#commented lines below do not have inputs for CO/NM yet
 write_caland_inputs(
     c_file = "~/GitHub/NWLAND/raw_data/2021_05_11_carbon_input_nwland_test.xls", # output file name
     inputs_dir = "~/GitHub/NWLAND/raw_data/2021_05_11_carbon_input_nwland_test", # output file directory
