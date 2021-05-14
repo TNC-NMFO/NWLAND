@@ -67,7 +67,7 @@
 setwd("./")
 
 # this enables java to use up to 4GB of memory for reading and writing excel files
-options(java.parameters = "-Xmx4g" )
+options(java.parameters = "-Xmx16g" ) # options(java.parameters = "-Xmx4g" )
 
 # Load all the required packages
 libs <- c( "ggplot2", "grid", "RColorBrewer" )
