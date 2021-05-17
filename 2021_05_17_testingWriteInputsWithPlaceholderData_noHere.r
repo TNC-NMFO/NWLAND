@@ -5,8 +5,8 @@ library(XLConnect)
 source("write_caland_inputs.r")
 
 write_caland_inputs(
-    c_file = "2021_05_14_carbon_input_nwland_testN.xls", # output file name
-    inputs_dir = "2021_05_14_carbon_input_nwland_testN", # output file directory
+    c_file = "2021_05_14_carbon_input_nwland_testS.xls", # output file name
+    inputs_dir = "2021_05_14_carbon_input_nwland_testS", # output file directory
     parameter_file = "proto_lc_params.xls",
     scenarios_file = "proto_nwl_scenarios_v01_ha.xls",
     units_scenario = "ha", # can be "ac" or "ha", we use hectares for NWLAND
@@ -15,7 +15,7 @@ write_caland_inputs(
     mortality_file = "mortality_annual_testing.csv",
     area_gis_files_new = "NWLAND_Area_Changes_2015_to_2050.csv",
     land_change_method = "Landuse_Avg_Annual",
-    area_gis_files_orig = c("area_lab_sp9_own9_2001lt15_sqm_stats.csv", "area_lab_sp9_own9_2010lt15_sqm_stats.csv"),
+    area_gis_files_orig = c("proto_area2001_sqm_stats.csv", "proto_area2016_sqm_stats.csv"),
     carbon_gis_files = c("soc_tpha_2017_stats.csv",
         "inventory_proto_agc_tpha.csv", 
         "inventory_proto_bgc_tpha.csv", 
