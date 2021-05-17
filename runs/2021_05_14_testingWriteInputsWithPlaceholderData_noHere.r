@@ -5,16 +5,17 @@ library(XLConnect)
 source("~/GitHub/NWLAND/write_caland_inputs.r")
 
 write_caland_inputs(
-    c_file = "~/GitHub/NWLAND/raw_data/2021_05_14_carbon_input_nwland_testC.xls", # output file name
-    inputs_dir = "~/GitHub/NWLAND/raw_data/2021_05_14_carbon_input_nwland_testC", # output file directory
+    c_file = "~/GitHub/NWLAND/raw_data/2021_05_14_carbon_input_nwland_testI.xls", # output file name
+    inputs_dir = "~/GitHub/NWLAND/raw_data/2021_05_14_carbon_input_nwland_testI", # output file directory
     parameter_file = "~/GitHub/NWLAND/raw_data/proto_lc_params.xls",
     scenarios_file = "~/GitHub/NWLAND/raw_data/proto_nwl_scenarios_v01_ha.xls",
     units_scenario = "ha", # can be "ac" or "ha", we use hectares for NWLAND
     climate_c_file = "~/GitHub/NWLAND/raw_data/climate_c_scalars_nmco_null_2010_2100.csv", 
     fire_area_file = "~/GitHub/NWLAND/raw_data/fire_area_RDS-2020-0016_averageannual_2001-2100.csv",
-    mortality_file = "mortality_annual_testing.csv",
+    mortality_file = "~/GitHub/NWLAND/raw_data/mortality_annual_testing.csv",
     area_gis_files_new = "~/GitHub/NWLAND/raw_data/NWLAND_Area_Changes_2015_to_2050.csv",
-    land_change_method = "~/GitHub/NWLAND/raw_data/Landuse_Avg_Annual",
+    land_change_method = "Landuse_Avg_Annual",
+    area_gis_files_orig = c("~/GitHub/NWLAND/raw_data/area_lab_sp9_own9_2001lt15_sqm_stats.csv", "~/GitHub/NWLAND/raw_data/area_lab_sp9_own9_2010lt15_sqm_stats.csv"),
     carbon_gis_files = c("~/GitHub/NWLAND/raw_data/soc_tpha_2017_stats.csv",
         "~/GitHub/NWLAND/raw_data/inventory_proto_agc_tpha.csv", 
         "~/GitHub/NWLAND/raw_data/inventory_proto_bgc_tpha.csv", 
