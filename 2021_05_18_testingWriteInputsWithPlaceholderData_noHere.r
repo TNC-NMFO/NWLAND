@@ -5,8 +5,8 @@ library(XLConnect)
 source("write_caland_inputs.r")
 
 write_caland_inputs(
-    c_file = "2021_05_14_carbon_input_nwland_testV.xls", # output file name
-    inputs_dir = "2021_05_14_carbon_input_nwland_testV", # output file directory
+    c_file = "2021_05_14_carbon_input_nwland_testX.xls", # output file name
+    inputs_dir = "2021_05_14_carbon_input_nwland_testX", # output file directory
     parameter_file = "proto_lc_params.xls",
     scenarios_file = "proto_nwl_scenarios_v01_ha.xls",
     units_scenario = "ha", # can be "ac" or "ha", we use hectares for NWLAND
