@@ -654,15 +654,15 @@ ann_diff_area_sum_ha = sum(diff_area_calc$ann_diff_area_ha)
 # make sure that caland checks for land cat existence for each management
 # fresh marsh comes out of cultivated only, so only add the initial cultivated ownerships
 # fresh marsh has been assigned a land type code of 120
-zero_area = diff_area_calc[diff_area_calc$start_area_ha == 0,]
-diff_area_calc = diff_area_calc[diff_area_calc$start_area_ha > 0,]
-delta_cult = diff_area_calc[diff_area_calc$lt_code == cult_code & diff_area_calc$reg_code == delta_code,]
-delta_cult$lcat_code = delta_cult$reg_code * 100000 + fresh_marsh_code * 100 + delta_cult$own_code
-delta_cult$lt_name = fresh_marsh_name
-delta_cult$lt_code = fresh_marsh_code
-delta_cult[,c(8:ncol(delta_cult))] = 0.00
-diff_area_calc = rbind(diff_area_calc, delta_cult)
-diff_area_calc = diff_area_calc[order(diff_area_calc$lcat_code),]
+#zero_area = diff_area_calc[diff_area_calc$start_area_ha == 0,]
+#diff_area_calc = diff_area_calc[diff_area_calc$start_area_ha > 0,]
+#delta_cult = diff_area_calc[diff_area_calc$lt_code == cult_code & diff_area_calc$reg_code == delta_code,]
+#delta_cult$lcat_code = delta_cult$reg_code * 100000 + fresh_marsh_code * 100 + delta_cult$own_code
+#delta_cult$lt_name = fresh_marsh_name
+#delta_cult$lt_code = fresh_marsh_code
+#delta_cult[,c(8:ncol(delta_cult))] = 0.00
+#diff_area_calc = rbind(diff_area_calc, delta_cult)
+#diff_area_calc = diff_area_calc[order(diff_area_calc$lcat_code),]
 
 # total land area
 land_area_sum_ha = sum(diff_area_calc$start_area_ha)
