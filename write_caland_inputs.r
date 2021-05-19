@@ -1624,211 +1624,211 @@ for (p in cpool_start:cpool_end) {
 	# the only errors that should occur are when there are no available vals
 	# there should not be any zero area categories in these calculations
 	# don't bother with the SE columns because they currently are not used
-	if (out_c_tags[p] != "soc") {
-		# first check same land type within region, and use area weighted average over other ownerships
-		avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		                         out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		                         out_table$Land_Type != "Seagrass",]
-		# get the area sum for weighting
-		area_agg = aggregate(Area_ha ~ Region + Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
-		names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
-		avail_vals = merge(avail_vals, area_agg, by = c("Region", "Land_Type"), all.x =TRUE)
-		avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * avail_vals$Area_ha / 
-		  avail_vals$Area_ha_sum
-		avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Region + Land_Type, avail_vals, 
-		                           FUN = sum, na.rm = TRUE)
-		# error prop on the stddev
-		stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Region + Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
-		avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
-		# merge these new values, assign them, then delete the extra columns
-		names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
-		out_table = merge(out_table, avail_vals_agg, by = c("Region", "Land_Type"), all.x =TRUE)
-		out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		            out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		              out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
-		                                                  "Stddev_Mg_ha_agg")]
-		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
-		                         "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
-		
-		# now check same land type and same ownership within all regions, and use area weighted average over other regions
-		avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		                         out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		                         out_table$Land_Type != "Seagrass",]
-		# get the area sum for weighting
-		area_agg = aggregate(Area_ha ~ Land_Type + Ownership, avail_vals, FUN = sum, na.rm = TRUE)
-		names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
-		avail_vals = merge(avail_vals, area_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
-		avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
-		  avail_vals$Area_ha / avail_vals$Area_ha_sum
-		avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type + Ownership, avail_vals, 
-		                           FUN = sum, na.rm = TRUE)
-		# error prop on the stddev
-		stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type + Ownership, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
-		avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
-		# merge these new values, assign them, then delete the extra columns
-		names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
-		out_table = merge(out_table, avail_vals_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
-		out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & out_table$Land_Type != "Cultivated" & 
-		            out_table$Land_Type != "Developed_all" & out_table$Land_Type != "Seagrass",
-		          c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		              out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		              out_table$Land_Type != "Seagrass",
-		            c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")]
-		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", "Max_Mg_ha", 
-		                         "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
-		
-		# finally check same land type in all ownerships within all regions, and use area weighted average over other 
-		# regions and ownerships
-		avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		                         out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		                         out_table$Land_Type != "Seagrass",]
-		# get the area sum for weighting
-		area_agg = aggregate(Area_ha ~ Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
-		names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
-		avail_vals = merge(avail_vals, area_agg, by = c("Land_Type"), all.x =TRUE)
-		avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * avail_vals$Area_ha / 
-		  avail_vals$Area_ha_sum
-		avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type, avail_vals, FUN = sum, 
-		                           na.rm = TRUE)
-		# error prop on the stddev
-		stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
-		avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
-		# merge these new values, assign them, then delete the extra columns
-		names(avail_vals_agg)[2:5] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
-		out_table = merge(out_table, avail_vals_agg, by = c("Land_Type"), all.x =TRUE)
-		out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		            out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		              out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
-		              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
-		                                                  "Stddev_Mg_ha_agg")]
-		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", "Max_Mg_ha", 
-		                         "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
-		
-		# remove the area column, order table, and put table in the output df list
-		out_table$Area_ha = NULL
-		out_table = out_table[order(out_table$Land_Cat_ID, out_table$Region, out_table$Land_Type, 
-		                            out_table$Ownership),]
-		out_c_df_list[[p]] = out_table
-		
-	} # end biomass c null data filling
+	# if (out_c_tags[p] != "soc") {
+	# 	# first check same land type within region, and use area weighted average over other ownerships
+	# 	avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	                         out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	                         out_table$Land_Type != "Seagrass",]
+	# 	# get the area sum for weighting
+	# 	area_agg = aggregate(Area_ha ~ Region + Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
+	# 	names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
+	# 	avail_vals = merge(avail_vals, area_agg, by = c("Region", "Land_Type"), all.x =TRUE)
+	# 	avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * avail_vals$Area_ha / 
+	# 	  avail_vals$Area_ha_sum
+	# 	avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Region + Land_Type, avail_vals, 
+	# 	                           FUN = sum, na.rm = TRUE)
+	# 	# error prop on the stddev
+	# 	stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Region + Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
+	# 	avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
+	# 	# merge these new values, assign them, then delete the extra columns
+	# 	names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
+	# 	out_table = merge(out_table, avail_vals_agg, by = c("Region", "Land_Type"), all.x =TRUE)
+	# 	out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	            out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	              out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
+	# 	                                                  "Stddev_Mg_ha_agg")]
+	# 	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
+	# 	                         "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
+	# 	
+	# 	# now check same land type and same ownership within all regions, and use area weighted average over other regions
+	# 	avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	                         out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	                         out_table$Land_Type != "Seagrass",]
+	# 	# get the area sum for weighting
+	# 	area_agg = aggregate(Area_ha ~ Land_Type + Ownership, avail_vals, FUN = sum, na.rm = TRUE)
+	# 	names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
+	# 	avail_vals = merge(avail_vals, area_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
+	# 	avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
+	# 	  avail_vals$Area_ha / avail_vals$Area_ha_sum
+	# 	avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type + Ownership, avail_vals, 
+	# 	                           FUN = sum, na.rm = TRUE)
+	# 	# error prop on the stddev
+	# 	stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type + Ownership, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
+	# 	avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
+	# 	# merge these new values, assign them, then delete the extra columns
+	# 	names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
+	# 	out_table = merge(out_table, avail_vals_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
+	# 	out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & out_table$Land_Type != "Cultivated" & 
+	# 	            out_table$Land_Type != "Developed_all" & out_table$Land_Type != "Seagrass",
+	# 	          c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	              out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	              out_table$Land_Type != "Seagrass",
+	# 	            c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")]
+	# 	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", "Max_Mg_ha", 
+	# 	                         "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
+	# 	
+	# 	# finally check same land type in all ownerships within all regions, and use area weighted average over other 
+	# 	# regions and ownerships
+	# 	avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	                         out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	                         out_table$Land_Type != "Seagrass",]
+	# 	# get the area sum for weighting
+	# 	area_agg = aggregate(Area_ha ~ Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
+	# 	names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
+	# 	avail_vals = merge(avail_vals, area_agg, by = c("Land_Type"), all.x =TRUE)
+	# 	avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * avail_vals$Area_ha / 
+	# 	  avail_vals$Area_ha_sum
+	# 	avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type, avail_vals, FUN = sum, 
+	# 	                           na.rm = TRUE)
+	# 	# error prop on the stddev
+	# 	stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
+	# 	avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
+	# 	# merge these new values, assign them, then delete the extra columns
+	# 	names(avail_vals_agg)[2:5] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
+	# 	out_table = merge(out_table, avail_vals_agg, by = c("Land_Type"), all.x =TRUE)
+	# 	out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	            out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	              out_table$Land_Type != "Cultivated" & out_table$Land_Type != "Developed_all" & 
+	# 	              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
+	# 	                                                  "Stddev_Mg_ha_agg")]
+	# 	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", "Max_Mg_ha", 
+	# 	                         "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
+	# 	
+	# 	# remove the area column, order table, and put table in the output df list
+	# 	out_table$Area_ha = NULL
+	# 	out_table = out_table[order(out_table$Land_Cat_ID, out_table$Region, out_table$Land_Type, 
+	# 	                            out_table$Ownership),]
+	# 	out_c_df_list[[p]] = out_table
+	# 	
+	# } # end biomass c null data filling
 	
-	########### for soil c
-	# first update the rangeland values (except for the stddev values)
-	# currently, with the 940 land categories, only 6 need filling:
-	#	110001 Central_Coast Meadow BLM; 303002 Delta Sparse DoD; 409005 Deserts Forest NPS; 409008 Deserts 
-	# Forest State_gov; 501007 Eastside Ice Private; 601009 Klamath Ice USFS_nonwild
-	#	these are all filled with the average of other ownerships in the same region and same land type
-	# then fill values for the land categories without values, except for fresh marsh and seagrass
-	# the only errors that should occur are when there are no available vals
-	# there should not be any zero area categories in these calculations
-	# don't bother with the SE columns because these data are not available for the soil c
-	if (out_c_tags[p] == "soc") {
-	
-		# first update the rangeland soil data
-		out_table$Min_Mg_ha[out_table$Land_Type == "Grassland" | out_table$Land_Type == "Savanna" | 
-		                      out_table$Land_Type == "Woodland"] = range_soc_min
-		out_table$Max_Mg_ha[out_table$Land_Type == "Grassland" | out_table$Land_Type == "Savanna" | 
-		                      out_table$Land_Type == "Woodland"] = range_soc_max
-		out_table$Mean_Mg_ha[out_table$Land_Type == "Grassland" | out_table$Land_Type == "Savanna" | 
-		                       out_table$Land_Type == "Woodland"] = range_soc_mean
-
-		# now fill the missing data
-		
-		# first check same land type within region, and use area weighted average over other ownerships
-		avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		                         out_table$Land_Type != "Seagrass",]
-		# get the area sum for weighting
-		area_agg = aggregate(Area_ha ~ Region + Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
-		names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
-		avail_vals = merge(avail_vals, area_agg, by = c("Region", "Land_Type"), all.x =TRUE)
-		avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
-		  avail_vals$Area_ha / avail_vals$Area_ha_sum
-		avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ 
-		                             Region + Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
-		# error prop on the stddev
-		stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Region + Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
-		avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
-		# merge these new values, assign them, then delete the extra columns
-		names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
-		out_table = merge(out_table, avail_vals_agg, by = c("Region", "Land_Type"), all.x =TRUE)
-		out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
-		                                                  "Stddev_Mg_ha_agg")]
-		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
-		                         "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
-		
-		# now check same land type and same ownership within all regions, and use area weighted average 
-		# over other regions
-		avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		                         out_table$Land_Type != "Seagrass",]
-		# get the area sum for weighting
-		area_agg = aggregate(Area_ha ~ Land_Type + Ownership, avail_vals, FUN = sum, na.rm = TRUE)
-		names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
-		avail_vals = merge(avail_vals, area_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
-		avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
-		  avail_vals$Area_ha / avail_vals$Area_ha_sum
-		avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type + Ownership, avail_vals, 
-		                           FUN = sum, na.rm = TRUE)
-		# error prop on the stddev
-		stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type + Ownership, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
-		avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
-		# merge these new values, assign them, then delete the extra columns
-		names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
-		out_table = merge(out_table, avail_vals_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
-		out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
-		                                                  "Stddev_Mg_ha_agg")]
-		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
-		                         "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
-		
-		# finally check same land type in all ownerships within all regions, and use area weighted average over 
-		# other regions and ownerships
-		avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		                         out_table$Land_Type != "Seagrass",]
-		# get the area sum for weighting
-		area_agg = aggregate(Area_ha ~ Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
-		names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
-		avail_vals = merge(avail_vals, area_agg, by = c("Land_Type"), all.x =TRUE)
-		avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
-		  avail_vals$Area_ha / avail_vals$Area_ha_sum
-		avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type, avail_vals, 
-		                           FUN = sum, na.rm = TRUE)
-		# error prop on the stddev
-		stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
-		avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
-		# merge these new values, assign them, then delete the extra columns
-		names(avail_vals_agg)[2:5] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
-		out_table = merge(out_table, avail_vals_agg, by = c("Land_Type"), all.x =TRUE)
-		out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
-		  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
-		              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
-		                                                  "Stddev_Mg_ha_agg")]
-		out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Min_Mg_ha", "Max_Mg_ha", 
-		                         "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
-		
-		# order table, and put table in the output df list
-		out_table = out_table[order(out_table$Land_Cat_ID, out_table$Region, out_table$Land_Type, 
-		                            out_table$Ownership),]
-		out_c_df_list[[p]] = out_table
-
-	} # end soil c null data filling
+	# ########### for soil c
+	# # first update the rangeland values (except for the stddev values)
+	# # currently, with the 940 land categories, only 6 need filling:
+	# #	110001 Central_Coast Meadow BLM; 303002 Delta Sparse DoD; 409005 Deserts Forest NPS; 409008 Deserts 
+	# # Forest State_gov; 501007 Eastside Ice Private; 601009 Klamath Ice USFS_nonwild
+	# #	these are all filled with the average of other ownerships in the same region and same land type
+	# # then fill values for the land categories without values, except for fresh marsh and seagrass
+	# # the only errors that should occur are when there are no available vals
+	# # there should not be any zero area categories in these calculations
+	# # don't bother with the SE columns because these data are not available for the soil c
+	# if (out_c_tags[p] == "soc") {
+	# 
+	# 	# first update the rangeland soil data
+	# 	out_table$Min_Mg_ha[out_table$Land_Type == "Grassland" | out_table$Land_Type == "Savanna" | 
+	# 	                      out_table$Land_Type == "Woodland"] = range_soc_min
+	# 	out_table$Max_Mg_ha[out_table$Land_Type == "Grassland" | out_table$Land_Type == "Savanna" | 
+	# 	                      out_table$Land_Type == "Woodland"] = range_soc_max
+	# 	out_table$Mean_Mg_ha[out_table$Land_Type == "Grassland" | out_table$Land_Type == "Savanna" | 
+	# 	                       out_table$Land_Type == "Woodland"] = range_soc_mean
+	# 
+	# 	# now fill the missing data
+	# 	
+	# 	# first check same land type within region, and use area weighted average over other ownerships
+	# 	avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	                         out_table$Land_Type != "Seagrass",]
+	# 	# get the area sum for weighting
+	# 	area_agg = aggregate(Area_ha ~ Region + Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
+	# 	names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
+	# 	avail_vals = merge(avail_vals, area_agg, by = c("Region", "Land_Type"), all.x =TRUE)
+	# 	avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
+	# 	  avail_vals$Area_ha / avail_vals$Area_ha_sum
+	# 	avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ 
+	# 	                             Region + Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
+	# 	# error prop on the stddev
+	# 	stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Region + Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
+	# 	avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
+	# 	# merge these new values, assign them, then delete the extra columns
+	# 	names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
+	# 	out_table = merge(out_table, avail_vals_agg, by = c("Region", "Land_Type"), all.x =TRUE)
+	# 	out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
+	# 	                                                  "Stddev_Mg_ha_agg")]
+	# 	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
+	# 	                         "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
+	# 	
+	# 	# now check same land type and same ownership within all regions, and use area weighted average 
+	# 	# over other regions
+	# 	avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	                         out_table$Land_Type != "Seagrass",]
+	# 	# get the area sum for weighting
+	# 	area_agg = aggregate(Area_ha ~ Land_Type + Ownership, avail_vals, FUN = sum, na.rm = TRUE)
+	# 	names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
+	# 	avail_vals = merge(avail_vals, area_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
+	# 	avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
+	# 	  avail_vals$Area_ha / avail_vals$Area_ha_sum
+	# 	avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type + Ownership, avail_vals, 
+	# 	                           FUN = sum, na.rm = TRUE)
+	# 	# error prop on the stddev
+	# 	stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type + Ownership, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
+	# 	avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
+	# 	# merge these new values, assign them, then delete the extra columns
+	# 	names(avail_vals_agg)[3:6] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
+	# 	out_table = merge(out_table, avail_vals_agg, by = c("Land_Type", "Ownership"), all.x =TRUE)
+	# 	out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
+	# 	                                                  "Stddev_Mg_ha_agg")]
+	# 	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Area_ha", "Min_Mg_ha", 
+	# 	                         "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
+	# 	
+	# 	# finally check same land type in all ownerships within all regions, and use area weighted average over 
+	# 	# other regions and ownerships
+	# 	avail_vals = out_table[!is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	                         out_table$Land_Type != "Seagrass",]
+	# 	# get the area sum for weighting
+	# 	area_agg = aggregate(Area_ha ~ Land_Type, avail_vals, FUN = sum, na.rm = TRUE)
+	# 	names(area_agg)[ncol(area_agg)] = "Area_ha_sum"
+	# 	avail_vals = merge(avail_vals, area_agg, by = c("Land_Type"), all.x =TRUE)
+	# 	avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  avail_vals[,c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] * 
+	# 	  avail_vals$Area_ha / avail_vals$Area_ha_sum
+	# 	avail_vals_agg = aggregate(cbind(Min_Mg_ha, Max_Mg_ha, Mean_Mg_ha) ~ Land_Type, avail_vals, 
+	# 	                           FUN = sum, na.rm = TRUE)
+	# 	# error prop on the stddev
+	# 	stddev_vals_agg = aggregate(Stddev_Mg_ha ~ Land_Type, avail_vals, FUN = function(x) {sqrt(sum(x^2))})
+	# 	avail_vals_agg$Stddev_Mg_ha = stddev_vals_agg$Stddev_Mg_ha
+	# 	# merge these new values, assign them, then delete the extra columns
+	# 	names(avail_vals_agg)[2:5] = c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", "Stddev_Mg_ha_agg")
+	# 	out_table = merge(out_table, avail_vals_agg, by = c("Land_Type"), all.x =TRUE)
+	# 	out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	            out_table$Land_Type != "Seagrass",c("Min_Mg_ha", "Max_Mg_ha", "Mean_Mg_ha", "Stddev_Mg_ha")] = 
+	# 	  out_table[is.na(out_table$Mean_Mg_ha) & out_table$Land_Type != "Fresh_marsh" & 
+	# 	              out_table$Land_Type != "Seagrass",c("Min_Mg_ha_agg", "Max_Mg_ha_agg", "Mean_Mg_ha_agg", 
+	# 	                                                  "Stddev_Mg_ha_agg")]
+	# 	out_table = out_table[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Min_Mg_ha", "Max_Mg_ha", 
+	# 	                         "Mean_Mg_ha", "Stddev_Mg_ha", "Mean_SE_Mg_ha", "Stddev_SE_Mg_ha")]
+	# 	
+	# 	# order table, and put table in the output df list
+	# 	out_table = out_table[order(out_table$Land_Cat_ID, out_table$Region, out_table$Land_Type, 
+	# 	                            out_table$Ownership),]
+	# 	out_c_df_list[[p]] = out_table
+	# 
+	# } # end soil c null data filling
 	
 } # end p loop over the carbon pools
 
