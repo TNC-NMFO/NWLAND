@@ -277,6 +277,7 @@ write_caland_inputs <- function(scen_tag = "default", c_file = "carbon_input_nwl
                                 fire_area_file = "fire_area_canESM2_85_bau_2001_2100.csv",
                                 mortality_file = "mortality_annual_july_2018.csv",
                                 area_gis_files_new = "CALAND_Area_Changes_2010_to_2101.csv", land_change_method = "Landuse_Avg_Annual",
+                                area_gis_files_orig = c("proto_area2001_sqm_stats.csv", "proto_area2016_sqm_stats.csv"),
                                 carbon_gis_files = c("gss_soc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_agc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_agc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_bgc_se_tpha_sp9_own9_2010lt15_stats.csv", 
                                                      "lfc_bgc_tpha_sp9_own9_2010lt15_stats.csv", "lfc_ddc_se_tpha_sp9_own9_2010lt15_stats.csv", 
@@ -547,6 +548,7 @@ forest_npp$Land_Type = "Forest"
 # the columns are: region code, region name, land type code, land type name, ownership code, ownership name, area
 styr_ind = grep(start_year, area_gis_files_orig)
 refyr_ind = grep(ref_year, area_gis_files_orig)
+print(area_gis_files_orig[styr_ind])
 start_area_in = read.csv(paste0(in_dir, area_gis_files_orig[styr_ind]), header=FALSE, stringsAsFactors=FALSE)
 start_area_in[,c(1,3,5)] <- as.numeric(unlist(start_area_in[,c(1,3,5)]))
 ref_area_in = read.csv(paste0(in_dir, area_gis_files_orig[refyr_ind]), header=FALSE, stringsAsFactors=FALSE)
