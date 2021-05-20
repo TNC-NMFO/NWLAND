@@ -2253,7 +2253,7 @@ for (m in params_start:params_end) {
 			# remove the area column
 			out_table_allregown $Area_ha = NULL
 			# order the columns
-			out_table_allown = out_table_allown[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
+			out_table_allregown = out_table_allregown[,c("Land_Cat_ID", "Region", "Land_Type", "Ownership", "Management", 
 			                         names(param_df_list[[in_index]])[param_start_col[in_index]:ncol(param_df_list[[in_index]])])]
 			man_df_list[[4]] = out_table_allregown
 			ME = c(ME,4)
