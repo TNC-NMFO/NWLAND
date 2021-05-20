@@ -11,8 +11,8 @@ reg_names = c("C08001", "C08003", "C08005", "C08007", "C08009", "C08011", "C0801
 num_reg = length(reg_names)
 
 write_caland_inputs(
-    c_file = "2021_05_14_carbon_input_nwland_testAL.xls", # output file name
-    inputs_dir = "2021_05_14_carbon_input_nwland_testAL", # output file directory
+    c_file = "2021_05_14_carbon_input_nwland_testAN.xls", # output file name
+    inputs_dir = "2021_05_14_carbon_input_nwland_testAN", # output file directory
     parameter_file = "proto_lc_params.xls",
     scenarios_file = "proto_nwl_scenarios_v01_ha.xls",
     units_scenario = "ha", # can be "ac" or "ha", we use hectares for NWLAND
