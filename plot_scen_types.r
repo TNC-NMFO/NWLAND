@@ -6,7 +6,16 @@
 # California, through Lawrence Berkeley National Laboratory (subject to 
 # receipt of any required approvals from the U.S. Dept. of Energy).  All 
 # rights reserved.
-# If you have questions about your rights to use or distribute this software, # please contact Berkeley Lab's Intellectual Property Office at # IPO@lbl.gov. #  # NOTICE.  This Software was developed under funding from the U.S. Department # of Energy and the U.S. Government consequently retains certain rights.  As # such, the U.S. Government has been granted for itself and others acting on # its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the # Software to reproduce, distribute copies to the public, prepare derivative  # works, and perform publicly and display publicly, and to permit others to do so.
+# If you have questions about your rights to use or distribute this software,
+# please contact Berkeley Lab's Intellectual Property Office at
+# IPO@lbl.gov.
+# 
+# NOTICE.  This Software was developed under funding from the U.S. Department
+# of Energy and the U.S. Government consequently retains certain rights.  As
+# such, the U.S. Government has been granted for itself and others acting on
+# its behalf a paid-up, nonexclusive, irrevocable, worldwide license in the
+# Software to reproduce, distribute copies to the public, prepare derivative 
+# works, and perform publicly and display publicly, and to permit others to do so.
 ####
 
 # This software and its associated input data are licensed under a modified BSD open source license
@@ -135,7 +144,7 @@ for (r in 1:num_reg) {
 			theme_set(theme_bw())
 			out_file = paste0(outputdir, figdir, "/", reg_lab, "/", reg_lab, "_", own_lab, "_", scen_names[i], "_", varname, "_comp", added_file_tag, ".pdf")
 			p <- ( ggplot(plot_df, aes(Year, Value, color=Land_Type))
-					+ scale_shape_manual(values=1:nlevels(plot_df$Land_Type))
+			    + scale_shape_manual(values = c(1:18))                                                                         # + scale_shape_manual(values=1:nlevels(plot_df$Land_Type))
 					+ geom_line(size = 0.3)
 					+ geom_point(aes(shape= Land_Type), size = 1.5)
 					+ ylab( ylabel )
