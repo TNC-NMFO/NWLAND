@@ -8,8 +8,8 @@ options(java.parameters = "-Xmx32g" )  # originally set to "-Xmx8g"
 source("CALAND.r")
 
 CALAND(
-  scen_file_arg = "NWL_Proto_v1_Hist_protoA_hist.xls", 
-  c_file_arg = "2021_05_14_carbon_input_nwland_testB1.xls", 
+  scen_file_arg = "NWL_Proto_v1_Hist_protoA_hist_noOcean.xls", 
+  c_file_arg = "2021_05_14_carbon_input_nwland_testB1_noOcean.xls", 
   indir = "2021_05_14_carbon_input_nwland_testB1",
   outdir = "2021_05_14_carbon_input_nwland_testB1", 
   start_year = 2016, 
