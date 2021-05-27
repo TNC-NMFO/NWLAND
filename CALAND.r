@@ -3518,7 +3518,7 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
 #        		cat("Warning: forest to savanna due to lack of potential converted land types\n")
       	} else {
       		conv_own$base_change_adjust[conv_own$Land_Type == "Forest"] = 
-          		conv_own$base_change_adjust[cconv_own$Land_Type == "Forest"] - temp_adjust
+          		conv_own$base_change_adjust[conv_own$Land_Type == "Forest"] - temp_adjust
       		cat("Warning: regenerating all forest after fire due to lack of potential converted land types; reg =", r, region.names[r], ", own =", i, own_names[i], "\n")
       	}        
       } # end else calc land adjusments to baseline area change
