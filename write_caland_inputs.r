@@ -408,15 +408,15 @@ fresh_marsh_code = 120
 delta_code = 3
 cult_code = 130
 
-# seagrass
-# Seagrass estimated extent range is 4451-6070 ha (NOAA)
-seagrass_reg_name = "Ocean"
-seagrass_lt_name = "Seagrass"
-seagrass_own_name = "Other_fed"
-seagrass_reg_code = 10
-seagrass_lt_code = 200
-seagrass_own_code = 6
-seagrass_start_area_ha = 5261.00
+# # seagrass
+# # Seagrass estimated extent range is 4451-6070 ha (NOAA)
+# seagrass_reg_name = "Ocean"
+# seagrass_lt_name = "Seagrass"
+# seagrass_own_name = "Other_fed"
+# seagrass_reg_code = 10
+# seagrass_lt_code = 200
+# seagrass_own_code = 6
+# seagrass_start_area_ha = 5261.00
 
 ###### mortality
 
@@ -667,18 +667,18 @@ ann_diff_area_sum_ha = sum(diff_area_calc$ann_diff_area_ha)
 # total land area
 land_area_sum_ha = sum(diff_area_calc$start_area_ha)
 
-# add seagrass
-seagrass_df = diff_area_calc[1,]
-seagrass_df$reg_name = seagrass_reg_name
-seagrass_df$lt_name = seagrass_lt_name
-seagrass_df$own_name = seagrass_own_name
-seagrass_df$reg_code = seagrass_reg_code
-seagrass_df$lt_code = seagrass_lt_code
-seagrass_df$own_code = seagrass_own_code
-seagrass_df$lcat_code = seagrass_reg_code * 100000 + seagrass_lt_code * 100 + seagrass_own_code
-seagrass_df$start_area_ha = seagrass_start_area_ha
-seagrass_df[,c(9:ncol(seagrass_df))] = 0.00
-diff_area_calc = rbind(diff_area_calc, seagrass_df)
+# # add seagrass
+# seagrass_df = diff_area_calc[1,]
+# seagrass_df$reg_name = seagrass_reg_name
+# seagrass_df$lt_name = seagrass_lt_name
+# seagrass_df$own_name = seagrass_own_name
+# seagrass_df$reg_code = seagrass_reg_code
+# seagrass_df$lt_code = seagrass_lt_code
+# seagrass_df$own_code = seagrass_own_code
+# seagrass_df$lcat_code = seagrass_reg_code * 100000 + seagrass_lt_code * 100 + seagrass_own_code
+# seagrass_df$start_area_ha = seagrass_start_area_ha
+# seagrass_df[,c(9:ncol(seagrass_df))] = 0.00
+# diff_area_calc = rbind(diff_area_calc, seagrass_df)
 
 ##############################################################################################
 ###########################  assign area calcs to out_scen_df_list ###########################  
