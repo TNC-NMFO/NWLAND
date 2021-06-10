@@ -3707,10 +3707,10 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           conv_own[,conv_own$Land_Type[l]][conv_own$gen_area_change < 0] = - conv_own$gen_area_change[conv_own$gen_area_change < 0] * 
             conv_own$gen_area_change[l] / conv_own$own_gain_sum[l]
         } # end for l loop over land type
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x < 0, 0.00)})
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == Inf, 0.00)})
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == -Inf, 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, x < 0, 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, is.nan(x), 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, x == Inf, 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, x == -Inf, 0.00)})
         
         # do it again to get the negative to-from values
         for (l in 1:length(conv_own$Land_Type)) {
@@ -3718,16 +3718,20 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
           conv_own2[,conv_own2$Land_Type[l]][conv_own2$gen_area_change > 0] = - conv_own2$gen_area_change[conv_own2$gen_area_change > 0] * 
             conv_own2$gen_area_change[l] / conv_own2$own_gain_sum[l]
         } # end for l loop over land type
-        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x < 0, 0.00)})
-        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
-        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x == Inf, 0.00)})
-        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type], 2, function (x) {replace(x, x == -Inf, 0.00)})
+        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type,drop=F], 2, function (x) {replace(x, x < 0, 0.00)})
+        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type,drop=F], 2, function (x) {replace(x, is.nan(x), 0.00)})
+        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type,drop=F], 2, function (x) {replace(x, x == Inf, 0.00)})
+        conv_own2[,conv_own2$Land_Type] <- apply(conv_own2[,conv_own2$Land_Type,drop=F], 2, function (x) {replace(x, x == -Inf, 0.00)})
         
         # put the negative to-from values into conv_own
         # first find which columns are empty
-        zinds = which(apply(conv_own[,conv_col_names],2,sum) == 0)
-        conv_own[,conv_col_names][,zinds] = -conv_own2[,conv_col_names][,zinds]
-
+        zinds = which(apply(conv_own[,conv_col_names,drop=F],2,sum) == 0)
+        if (length(conv_col_names < 2) & length(zinds) > 0) {
+          conv_own[,conv_col_names] = -conv_own2[,conv_col_names]
+        } else {
+          conv_own[,conv_col_names][,zinds] = -conv_own2[,conv_col_names][,zinds]
+        }
+        
         # now adjust these conversions based on the specific non-growth conversions above (afforestation/reforestaion and restoration and non-regen)
         #  growth and any limitation adjustments have already been distributed proportionally to the appriate land types
         # don't need to scale, as the generic transitions ensure that enough land is available for the non-growth conversions
@@ -3971,16 +3975,16 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
         		
         } # end for l loop over land types to incorporate specific transitions
         
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, is.na(x), 0.00)})
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, is.nan(x), 0.00)})
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == Inf, 0.00)})
-        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type], 2, function (x) {replace(x, x == -Inf, 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, is.na(x), 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, is.nan(x), 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, x == Inf, 0.00)})
+        conv_own[,conv_own$Land_Type] <- apply(conv_own[,conv_own$Land_Type,drop=F], 2, function (x) {replace(x, x == -Inf, 0.00)})
         
         # check the row and column sums against area_change
         # note that the row values are the negative of area_change
-        conv_own$row_sums = apply(conv_own[,conv_col_names],1,FUN= function(x) {sum(x, na.rm=TRUE)})
+        conv_own$row_sums = apply(conv_own[,conv_col_names,drop=F],1,FUN= function(x) {sum(x, na.rm=TRUE)})
         conv_own$row_sums_diff = -conv_own$row_sums - conv_own$area_change
-		col_sums = apply(conv_own[,conv_col_names],2,FUN= function(x) {sum(x, na.rm=TRUE)})
+		col_sums = apply(conv_own[,conv_col_names,drop=F],2,FUN= function(x) {sum(x, na.rm=TRUE)})
 		for (c in 1:length(conv_col_names)) {
 			conv_own$col_sums_diff[c] = col_sums[c] - conv_own$area_change[c]
 		}
