@@ -4403,10 +4403,25 @@ CALAND <- function(scen_file_arg, c_file_arg = "carbon_input_nwl.xls", indir = "
       } # end for g loop
       # combine dataframes for each ownership type within a region
       if (length(own_conv_df_list_pre) > 1) {
+        if (ncol(own_conv_df_list_pre[[1]]) > 94){
+          own_conv_df_list_pre[[1]] = subset(own_conv_df_list_pre[[1]], select=-c(row_sums_diff,row_sums,col_sums_diff))
+        } else {
+          #do nothing
+        }
+        if (ncol(own_conv_df_list_pre[[2]]) > 94){
+          own_conv_df_list_pre[[2]] = subset(own_conv_df_list_pre[[2]], select=-c(row_sums_diff,row_sums,col_sums_diff))
+        } else {
+          #do nothing
+        }
         conv_df_pre = rbind(own_conv_df_list_pre[[1]], own_conv_df_list_pre[[2]])
         if (length(own_conv_df_list_pre) > 2) {
           for (z in 3:length(own_names)) {
-            conv_df_pre = rbind(conv_df_pre, own_conv_df_list_pre[[z]])
+            if (ncol(own_conv_df_list_pre[[z]]) > 94){
+              own_conv_df_list_pre[[z]] = subset(own_conv_df_list_pre[[z]], select=-c(row_sums_diff,row_sums,col_sums_diff))
+              conv_df_pre = rbind(conv_df_pre, own_conv_df_list_pre[[z]])
+            } else {
+              conv_df_pre = rbind(conv_df_pre, own_conv_df_list_pre[[z]])
+            }
           }
         }  
         own_conv_df_list[[r]] = conv_df_pre
