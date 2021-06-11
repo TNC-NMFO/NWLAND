@@ -1,8 +1,8 @@
+# this enables java to use up to 16GB of memory for reading and writing excel files
+options(java.parameters = "-d64 -Xms8g -Xmx16g" )  # originally set to "-Xmx8g" 
+
 #load XLConnect (which should also load its dependency rJava)
 library(XLConnect)
-
-# this enables java to use up to 16GB of memory for reading and writing excel files
-options(java.parameters = "-d64 -Xms4g -Xmx8g" )  # originally set to "-Xmx8g" 
 
 #load the write_caland_inputs function to memory
 source("CALAND.r")
