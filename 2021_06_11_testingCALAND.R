@@ -1,5 +1,5 @@
 # this enables java to use up to 16GB of memory for reading and writing excel files
-options(java.parameters = "-d64 -Xms8g -Xmx16g" )  # originally set to "-Xmx8g" 
+options(java.parameters = "-d64 -Xms8g -Xmx64g" )  # originally set to "-Xmx8g" 
 
 #load XLConnect (which should also load its dependency rJava)
 library(XLConnect)
