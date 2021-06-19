@@ -103,30 +103,13 @@
 ###################################################### start script #################################################################
 
 # setwd("<your_path>/caland/")
-setwd("./")
-
-#Define function 'detach_package' 
-detach_package <- function(pkg, character.only = FALSE)
-{
-  if(!character.only)
-  {
-    pkg <- deparse(substitute(pkg)) 
-  }
-  search_item <- paste("package", pkg, sep = ":")
-  while(search_item %in% search())
-  {
-    detach(search_item, unload = TRUE, character.only = TRUE)
-  }
-}
-
-detach_package("XLConnect")
-detach_package("rJava")
+# setwd("./")
 
 # this enables java to use up to 16GB of memory for reading and writing excel files
-options(java.parameters = "-Xmx32g" )  # originally set to "-Xmx8g" 
+# options(java.parameters = "-Xmx32g" )  # originally set to "-Xmx8g" 
 
 # Install of required packages, including re-install of those detached after greater allocation of memory for Java 
-install.packages(c("ggplot2", "grid", "RColorBrewer", "reshape2", "XLConnect", "rJava"))
+install.packages(c("ggplot2", "grid", "RColorBrewer", "reshape2"))
 
 # Load all the required packages
 libs <- c( "XLConnect", "ggplot2", "grid", "RColorBrewer", "reshape2")
@@ -138,7 +121,6 @@ for( i in libs ) {
     }
     library( i, character.only=T )
 }
-
 
 ### Assign plot_caland()
 
