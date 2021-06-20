@@ -12,4 +12,5 @@ plot_caland(
   reg = c("All_region"), 
   lt = c("All_land", "Barren", "Cultivated", "Desert", "Developed_all", "Forest", "Grassland", "Ice", "Meadow", "Riparian", "Savanna", "Shrubland", "Sparse", "Water", "Wetland", "Woodland"),
   own = c("All_own"),
+  figdir = "figures"
 )
